@@ -32,6 +32,8 @@ This document defines the comprehensive architecture blueprint for a scalable, s
 - **Data Integrity**: ACID transactions with eventual consistency
 - **Risk Management**: Circuit breakers and failover mechanisms
 - **Multi-tenancy**: Secure isolation per financial institution
+- **Developer Experience**: Enhanced DX patterns from industry best practices
+- **Performance First**: Trading-optimized performance budgets and monitoring
 
 ---
 
@@ -79,8 +81,9 @@ This document defines the comprehensive architecture blueprint for a scalable, s
 - Angular 18+ with Standalone Components
 - Module Federation (Webpack 5)
 - NgRx for Global State Management
-- Angular Material + Custom Design System
+- **Enhanced Design System**: Angular Material + Tailwind CSS utilities
 - RxJS for Reactive Programming
+- **Performance Monitoring**: Real User Monitoring (RUM) integration
 
 **Responsibilities:**
 ```typescript
@@ -182,22 +185,25 @@ module.exports = withModuleFederation({
 
 ## Component Library Architecture
 
-### Design System Structure
+### Enhanced Design System Structure
 
 ```
 fintech-angular-components/
 ├── projects/
 │   ├── core/                    # Core utilities and services
 │   │   ├── theme/              # Design tokens and theming
+│   │   │   ├── tokens.ts       # Semantic design tokens
+│   │   │   ├── tailwind.config.ts # Tailwind CSS configuration
+│   │   │   └── material-theme.ts  # Angular Material theming
 │   │   ├── utils/              # Utility functions
 │   │   └── services/           # Shared services
-│   ├── ui-kit/                 # Basic UI components
-│   │   ├── button/             # Button variations
-│   │   ├── input/              # Form inputs
+│   ├── ui-kit/                 # Basic UI components (Material + Tailwind)
+│   │   ├── button/             # Button variations with Tailwind utilities
+│   │   ├── input/              # Form inputs with enhanced styling
 │   │   ├── card/               # Cards and panels
 │   │   └── modal/              # Modal dialogs
 │   ├── data-visualization/     # Charts and graphs
-│   │   ├── candlestick-chart/  # Trading charts
+│   │   ├── candlestick-chart/  # Trading charts (D3 + Angular)
 │   │   ├── portfolio-chart/    # Portfolio allocation
 │   │   └── performance-chart/  # Performance metrics
 │   ├── trading-components/     # Trading-specific components
@@ -210,27 +216,40 @@ fintech-angular-components/
 │       └── compliance-forms/   # Regulatory forms
 └── apps/
     ├── showcase/               # Component showcase app
-    └── documentation/          # Storybook documentation
+    ├── documentation/          # Storybook 8 documentation
+    └── design-tokens/          # Design token playground
 ```
 
-### Component Architecture Pattern
+### Enhanced Component Architecture Pattern
 
 ```typescript
-// Base component architecture
+// Enhanced base component with Tailwind + Material integration
 @Component({
   selector: 'ftech-base-component',
   template: ``,
   styleUrls: ['./base-component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
+  host: {
+    '[class]': 'computedClasses',
+    '[attr.data-testid]': 'testId'
+  }
 })
 export class BaseComponent implements OnInit, OnDestroy {
   // Accessibility support
   @HostBinding('attr.role') role: string;
   @HostBinding('attr.aria-label') ariaLabel: string;
   
-  // Theming support
+  // Enhanced theming with Tailwind integration
   @Input() theme: ThemeVariant = 'default';
+  @Input() size: ComponentSize = 'md';
+  @Input() variant: ComponentVariant = 'primary';
+  
+  // Tailwind utility classes
+  @Input() customClasses = '';
+  
+  // Testing support
+  @Input() testId?: string;
   
   // Event handling
   @Output() interaction = new EventEmitter<ComponentInteraction>();
@@ -238,20 +257,46 @@ export class BaseComponent implements OnInit, OnDestroy {
   // Lifecycle management
   private destroy$ = new Subject<void>();
   
+  // Computed classes combining Material + Tailwind
+  get computedClasses(): string {
+    return this.buildClasses([
+      this.getThemeClasses(),
+      this.getSizeClasses(),
+      this.getVariantClasses(),
+      this.customClasses
+    ]);
+  }
+  
   constructor(
     private cdr: ChangeDetectorRef,
     private analytics: AnalyticsService,
-    private accessibility: AccessibilityService
+    private accessibility: AccessibilityService,
+    private themeService: ThemeService
   ) {}
   
   ngOnInit(): void {
     this.setupAccessibility();
     this.trackComponentUsage();
+    this.subscribeToThemeChanges();
   }
   
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+  
+  private buildClasses(classes: string[]): string {
+    return classes.filter(Boolean).join(' ');
+  }
+  
+  private getThemeClasses(): string {
+    return this.themeService.getComponentClasses(this.theme);
+  }
+  
+  private subscribeToThemeChanges(): void {
+    this.themeService.themeChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(() => this.cdr.markForCheck());
   }
 }
 ```
@@ -610,6 +655,27 @@ export class BusinessMetricsService {
 ## Conclusion
 
 This architecture provides a robust, scalable, and secure foundation for FinTech enterprise applications using Angular micro-frontends. The design emphasizes security, compliance, performance, and maintainability while providing clear separation of concerns and bounded contexts for each business domain.
+
+## Architecture Decision: Single Source of Truth
+
+**Selected Approach**: **Enhanced Angular FinTech Micro-Frontend Architecture**
+
+This architecture incorporates strategic enhancements from modern React micro-frontend patterns while maintaining Angular's enterprise-grade capabilities essential for FinTech applications:
+
+### Strategic Enhancements Integrated:
+- **Enhanced Design System**: Angular Material + Tailwind CSS for flexibility
+- **Improved Developer Experience**: Enhanced error handling and debugging
+- **Advanced Testing Strategy**: Comprehensive testing pyramid with visual regression
+- **Optimized CI/CD**: Canary deployment with automated validation
+- **Performance Monitoring**: Real User Monitoring and Core Web Vitals tracking
+
+### Why This Architecture Wins for FinTech:
+1. **Regulatory Compliance**: Complete SOC 2, PCI DSS, MiFID II support
+2. **Enterprise Security**: Comprehensive audit trails and security patterns  
+3. **Trading Performance**: Sub-second loading and real-time capabilities
+4. **Scalable State Management**: NgRx for complex financial data flows
+5. **Domain-Driven Design**: Bounded contexts for Trading, Portfolio, Risk
+6. **Production-Ready**: Battle-tested patterns for financial institutions
 
 **Next Steps:**
 1. Review and approve architecture
