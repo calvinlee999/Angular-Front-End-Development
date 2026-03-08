@@ -510,6 +510,7 @@ sequenceDiagram
             alt Recovery Successful
                 MFELoader->>Shell: recoveredModule('trading')
                 Shell->>User: Replace fallback with actual module
+                Note over MFELoader: Break retry loop
                 break
             else Recovery Failed
                 Note over FallbackService: Wait longer, try again
