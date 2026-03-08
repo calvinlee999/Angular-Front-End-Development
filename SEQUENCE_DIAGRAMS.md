@@ -510,8 +510,6 @@ sequenceDiagram
             alt Recovery Successful
                 MFELoader->>Shell: recoveredModule('trading')
                 Shell->>User: Replace fallback with actual module
-                Note over MFELoader: Break retry loop
-                break
             else Recovery Failed
                 Note over FallbackService: Wait longer, try again
             end
@@ -1003,6 +1001,16 @@ sequenceDiagram
 - **Stress Testing**: Beyond normal capacity to identify breaking points
 - **Response Time**: p95 < 2s, p99 < 3s for all critical operations
 - **Throughput**: Handle 50,000+ transactions per minute
+
+---
+
+## Multi-Region Deployment Flow
+
+### Simplified CI/CD Pipeline for Multi-Region Deployment
+
+```mermaid
+sequenceDiagram
+    participant Developer as Developer
     participant Git as Git Repository
     participant Pipeline as Azure Pipeline
     participant Security as Security Scanner
