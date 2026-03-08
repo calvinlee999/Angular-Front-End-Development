@@ -729,10 +729,9 @@ sequenceDiagram
             SecurityScanner->>GitHubActions: securityViolations[]
             GitHubActions->>Developer: Block deployment - Security issues
             GitHubActions->>NotificationService: sendSecurityAlert()
-            break Security Gate Failed
+        else Security Pass
+            SecurityScanner->>GitHubActions: securityPassed
         end
-        
-        SecurityScanner->>GitHubActions: securityPassed
         
         and Code Quality Analysis
         GitHubActions->>QualityGates: Run comprehensive quality analysis
@@ -745,9 +744,10 @@ sequenceDiagram
         end
         
         alt Quality Gate Failed
-            QualityGates->>GitHubActions: qualityIssues[coverage: 94%, target: 95%]
+            QualityGates->>GitHubActions: qualityIssues[coverage below 95%]
             GitHubActions->>Developer: Block deployment - Quality standards not met
-            break Quality Gate Failed
+        else Quality Gate Passed
+            QualityGates->>GitHubActions: qualityPassed
         end
         
         QualityGates->>GitHubActions: qualityPassed(coverage: 97%)
@@ -952,12 +952,8 @@ sequenceDiagram
         TestReporter->>TestReporter: calculateQualityMetrics()
     end
     
-    TestReporter->>QualityGate: validateQualityStandards({
-        unitCoverage: 99.2%,
-        integrationPassed: 100%,
-        e2ePassed: 100%,
-        performanceP95: 1.2s
-    })
+    TestReporter->>QualityGate: validateQualityStandards(testResults)
+    Note over QualityGate: unitCoverage 99.2%, integration 100%, e2e 100%, p95 1.2s
     
     alt Quality Standards Met
         QualityGate->>TestOrchestrator: qualityGatePassed
